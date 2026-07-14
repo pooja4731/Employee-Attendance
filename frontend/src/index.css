@@ -1,0 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { font-family: 'Poppins', sans-serif; box-sizing: border-box; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+input:focus, button:focus, textarea:focus { outline: none; }
+.focus-ring:focus-visible { outline: 2px solid #2563EB; outline-offset: 2px; }
+
+@media (max-width: 900px) {
+  .desktop-sidebar { display: none; }
+  .mobile-menu-btn { display: flex !important; }
+  .hide-mobile { display: none !important; }
+  .two-col { grid-template-columns: 1fr !important; }
+  .three-col { grid-template-columns: 1fr !important; }
+}
