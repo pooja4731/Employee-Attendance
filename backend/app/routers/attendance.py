@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from bson import ObjectId
 from app.models.attendance import CheckInRequest, CheckOutRequest, AttendanceOut
 from app.database import attendance_collection
@@ -39,7 +40,7 @@ async def check_in(payload: CheckInRequest, current_user: dict = Depends(get_cur
     if existing and existing.get("check_in"):
         raise HTTPException(status_code=400, detail="Already checked in today")
 
-    now = datetime.now()
+    now = datetime.now(ZoneInfo("Asia/Kolkata"))
     doc = {
         "user_id": current_user["_id"],
         "date": date_key,
@@ -72,7 +73,7 @@ async def check_out(payload: CheckOutRequest, current_user: dict = Depends(get_c
     if existing.get("check_out"):
         raise HTTPException(status_code=400, detail="Already checked out today")
 
-    now = datetime.now()
+    now = datetime.now(ZoneInfo("Asia/Kolkata"))
     hours = parse_hms(existing["check_in_iso"], now.isoformat())
 
     office_end_hour = 9.0  # default standard working hours threshold for OT
