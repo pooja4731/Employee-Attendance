@@ -40,7 +40,10 @@ async def check_in(payload: CheckInRequest, current_user: dict = Depends(get_cur
     if existing and existing.get("check_in"):
         raise HTTPException(status_code=400, detail="Already checked in today")
 
-    now = datetime.now(ZoneInfo("Asia/Kolkata"))
+    if payload.check_in:
+        now = datetime.fromisoformat(payload.check_in)
+    else:
+        now = datetime.now(ZoneInfo("Asia/Kolkata"))
     doc = {
         "user_id": current_user["_id"],
         "date": date_key,
@@ -73,7 +76,10 @@ async def check_out(payload: CheckOutRequest, current_user: dict = Depends(get_c
     if existing.get("check_out"):
         raise HTTPException(status_code=400, detail="Already checked out today")
 
-    now = datetime.now(ZoneInfo("Asia/Kolkata"))
+    if payload.check_out:
+        now = datetime.fromisoformat(payload.check_out)
+    else:
+        now = datetime.now(ZoneInfo("Asia/Kolkata"))
     hours = parse_hms(existing["check_in_iso"], now.isoformat())
 
     office_end_hour = 9.0  # default standard working hours threshold for OT

@@ -4,11 +4,12 @@ from typing import Optional
 
 class CheckInRequest(BaseModel):
     work_note: Optional[str] = ""
+    check_in: Optional[str] = None
 
 
 class CheckOutRequest(BaseModel):
     work_note: Optional[str] = ""
-
+    check_out: Optional[str] = None
 
 class AttendanceOut(BaseModel):
     id: str

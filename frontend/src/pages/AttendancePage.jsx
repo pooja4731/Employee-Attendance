@@ -63,6 +63,8 @@ export default function AttendancePage() {
   const [workNote, setWorkNote] = useState("");
   const [month, setMonth] = useState("");
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [manualCheckout, setManualCheckout] = useState("");
+  const [manualCheckIn, setManualCheckIn] = useState("");
 
   const [showManual, setShowManual] = useState(false);
 
@@ -105,9 +107,10 @@ export default function AttendancePage() {
   const handleCheckIn = async () => {
     setBusy(true);
     try {
-      await checkIn(workNote);
+      await checkIn(workNote, manualCheckIn);
       notify?.("Checked in successfully");
       setWorkNote("");
+      setManualCheckIn("");
       await load();
     } catch (e) {
       notify?.(e?.response?.data?.detail || "Check-in failed");
@@ -119,9 +122,10 @@ export default function AttendancePage() {
   const handleCheckOut = async () => {
     setBusy(true);
     try {
-      await checkOut(workNote);
+      await checkOut(workNote, manualCheckout);
       notify?.("Checked out successfully");
       setWorkNote("");
+      setManualCheckout("");
       await load();
     } catch (e) {
       notify?.(e?.response?.data?.detail || "Check-out failed");
@@ -232,6 +236,12 @@ export default function AttendancePage() {
                 value={workNote}
                 onChange={(e) => setWorkNote(e.target.value)}
                 placeholder="e.g. Fixed website bugs"
+              />
+              <Field
+                label="Manual Check Out (Optional)"
+                type="datetime-local"
+                value={manualCheckout}
+                onChange={(e) => setManualCheckout(e.target.value)}
               />
             </div>
             <Button
