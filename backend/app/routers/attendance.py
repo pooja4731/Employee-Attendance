@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from bson import ObjectId
-from app.models.attendance import CheckInRequest, CheckOutRequest, AttendanceOut
+from app.models.attendance import CheckInRequest, CheckOutRequest, AttendanceOut, ManualAttendanceRequest
 from app.database import attendance_collection
 from app.deps import get_current_user
 from app.utils.time_utils import today_str, now_time_str, parse_hms, format_hours, compute_status
@@ -104,3 +104,69 @@ async def list_attendance(month: str | None = None, current_user: dict = Depends
     cursor = attendance_collection.find(query).sort("date", -1)
     docs = await cursor.to_list(length=500)
     return [serialize(d) for d in docs]
+
+
+@router.delete("/{attendance_id}")
+async def delete_attendance(
+    attendance_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    result = await attendance_collection.delete_one({
+        "_id": ObjectId(attendance_id),
+        "user_id": current_user["_id"]
+    })
+
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Attendance not found")
+
+    return {"message": "Attendance deleted successfully"}
+
+
+@router.post("/manual", response_model=AttendanceOut)
+async def manual_attendance(
+    payload: ManualAttendanceRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    existing = await attendance_collection.find_one({
+        "user_id": current_user["_id"],
+        "date": payload.date
+    })
+
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail="Attendance already exists for this date"
+        )
+
+    check_in_dt = datetime.fromisoformat(f"{payload.date}T{payload.check_in}:00")
+    check_out_dt = datetime.fromisoformat(f"{payload.date}T{payload.check_out}:00")
+
+    if check_out_dt <= check_in_dt:
+        raise HTTPException(
+            status_code=400,
+            detail="Check-out must be after check-in"
+        )
+
+    hours = (check_out_dt - check_in_dt).total_seconds() / 3600
+
+    overtime = max(0, round(hours - 9, 2))
+
+    doc = {
+        "user_id": current_user["_id"],
+        "date": payload.date,
+        "check_in": check_in_dt.strftime("%I:%M %p"),
+        "check_out": check_out_dt.strftime("%I:%M %p"),
+        "check_in_iso": check_in_dt.isoformat(),
+        "check_out_iso": check_out_dt.isoformat(),
+        "working_hours": round(hours, 2),
+        "working_hours_display": format_hours(hours),
+        "overtime_hours": overtime,
+        "overtime_display": format_hours(overtime),
+        "status": compute_status(hours),
+        "work_note": payload.work_note,
+    }
+
+    result = await attendance_collection.insert_one(doc)
+    doc["_id"] = result.inserted_id
+
+    return serialize(doc)

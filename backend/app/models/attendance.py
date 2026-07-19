@@ -23,3 +23,10 @@ class AttendanceOut(BaseModel):
     overtime_display: str = "0h 00m"
     status: str = "Absent"
     work_note: str = ""
+
+
+class ManualAttendanceRequest(BaseModel):
+    date: str
+    check_in: str
+    check_out: str
+    work_note: Optional[str] = ""
