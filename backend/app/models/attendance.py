@@ -24,6 +24,11 @@ class AttendanceOut(BaseModel):
     overtime_display: str = "0h 00m"
     status: str = "Absent"
     work_note: str = ""
+    attendance_type: str = "Present"
+    late_minutes: int = 0
+    early_leave_minutes: int = 0
+    manual_correction: bool = False
+    leave_reason: str = ""
 
 
 class ManualAttendanceRequest(BaseModel):
@@ -31,3 +36,8 @@ class ManualAttendanceRequest(BaseModel):
     check_in: str
     check_out: str
     work_note: Optional[str] = ""
+
+class AttendanceTypeRequest(BaseModel):
+    date: str
+    attendance_type: str
+    leave_reason: Optional[str] = ""
